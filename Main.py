@@ -3,11 +3,13 @@ from spotipy.oauth2 import SpotifyOAuth
 from google import genai
 from google.genai import types 
 from dotenv import load_dotenv
+from datetime import datetime
+import json
 
 
 class AiAgentSpotifySongsRecommendation:
     def __init__(self):
-        self.scope = "user-top-read"
+        self.scope = "user-top-read playlist-modify-public playlist-modify-private"
         load_dotenv()
         self.client = genai.Client()
         self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=self.scope))
@@ -39,16 +41,36 @@ class AiAgentSpotifySongsRecommendation:
                 
             )          
         )
-        return self.reponse.text
+        return json.loads(self.reponse.text)
+
+    def create_new_playlist(self):
+     current_month = datetime.now().strftime("%B")
+     playlist_created_id = self.sp.user_playlist_create(user="repplayy01",name=f"MKAgent: {current_month} recommedation", description="Playlist recommended by MkAgent")
+     return playlist_created_id["id"]
+     
+ 
+ 
+    def get_tracks_ids(self,track):
+        search_result = self.sp.search(q=track, limit=1, offset=0, market="BR")
+        id_track = search_result['tracks']['items'][0]['id']
+        return id_track
+    
+    def add_tracks_to_playlist(self,playlist_id,tracks):
+     self.sp.playlist_add_items(playlist_id=playlist_id,items=tracks)
 
 
 
 if __name__ == "__main__":
     spotify = AiAgentSpotifySongsRecommendation()
+    list_format_add_tracks = []
     my_top_artist = spotify.get_df_top_artist(limit=10,offset=0,time_range="short_term")
     my_top_tracks = spotify.get_df_top_tracks(limit=10,offset=0,time_range="short_term")
-    recommendations = spotify.create_list_recommendation(20,my_top_artist,my_top_tracks)
+    recommendations = spotify.create_list_recommendation(5,my_top_artist,my_top_tracks)
     
-    print(recommendations)
+              
+    spotify.add_tracks_to_playlist(playlist_id= spotify.create_new_playlist(),tracks=recommendations)
+        
+    
+    print("success in create new playlist recommedation")
 
 
