@@ -62,13 +62,24 @@ class AiAgentSpotifySongsRecommendation:
 
 if __name__ == "__main__":
     spotify = AiAgentSpotifySongsRecommendation()
-    list_format_add_tracks = []
+    list_id_tracks = []
     my_top_artist = spotify.get_df_top_artist(limit=10,offset=0,time_range="short_term")
+    print(f"My top artist: {my_top_artist}")
     my_top_tracks = spotify.get_df_top_tracks(limit=10,offset=0,time_range="short_term")
-    recommendations = spotify.create_list_recommendation(5,my_top_artist,my_top_tracks)
+    print(f"My top tracks: {my_top_tracks}")
     
+    recommendations = spotify.create_list_recommendation(5,my_top_artist,my_top_tracks)
+    print(f"Agent Recommendations: {recommendations}")
+    
+    for track in recommendations:
+        trackid = spotify.get_tracks_ids(track=track)
+        list_id_tracks.append(f"{trackid}")
+        
+        print(f"added track_id :{trackid}" )
               
-    spotify.add_tracks_to_playlist(playlist_id= spotify.create_new_playlist(),tracks=recommendations)
+    id_playlist = spotify.create_new_playlist()
+    
+    spotify.add_tracks_to_playlist(playlist_id=id_playlist ,tracks=list_id_tracks)
         
     
     print("success in create new playlist recommedation")
